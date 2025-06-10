@@ -5,11 +5,11 @@ This project demonstrates an end-to-end data pipeline using AWS services for Qui
 
 S3 Structure
 Bucket: s3://quickbite-data-suraj/
-├── Landing/
-│   └── sample_orders.csv
-├── Trusted/
-│   └── transactions/ (Partitioned Parquet Output)
-│   └── dim_customer.csv 
+--> Landing/
+  |_> sample_orders.csv
+Trusted/
+  |_> transactions/ (Partitioned Parquet Output)
+  |_> dim_customer.csv 
 
 
 AWS Glue ETL
@@ -20,18 +20,18 @@ AWS Glue ETL
   
 Athena
 - Crawler created for Trusted/transactions
-- Queries run on `transactions` table to explore and filter data
+- Queries run on "transactions" table to explore and filter data
 
 
 Redshift
 - Redshift cluster created and connected via Query Editor v2
 - Used COPY command to load trusted data
-- Created tables: `fact_order`, `dim_customer`
+- Created tables: "fact_order", "dim_customer"
 - Performed joins for customer analytics
 
   
 Data Quality Checks
-See `Data_Quality_Report_QuickBite.docx` for:
+See "Data_Quality_Report_QuickBite.docx" for:
 - Null analysis
 - Duplicate checks
 - Order status counts
