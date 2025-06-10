@@ -1,0 +1,149 @@
+DROP TABLE IF EXISTS fact_order;
+
+CREATE TABLE fact_order (
+    order_id INT,
+    order_date TIMESTAMP,
+    customer_id VARCHAR(50),
+    restaurant_id VARCHAR(50),
+    item_id VARCHAR(50),
+    quantity INT,
+    price_per_item DECIMAL(10,2),
+    total_price DECIMAL(10,2),
+    order_status VARCHAR(50),
+    year INT,
+    month INT
+);
+
+SELECT * FROM fact_order LIMIT 10;
+
+
+
+CREATE TABLE dim_customer (
+    customer_id VARCHAR(50),
+    customer_name VARCHAR(100),
+    customer_email VARCHAR(100),
+    customer_phone VARCHAR(20)
+);
+
+
+INSERT INTO dim_customer VALUES
+('C001', 'Alice Johnson', 'alice@example.com', '1234567890'),
+('C003', 'Bob Smith', 'bob@example.com', '2345678901'),
+('C006', 'Carol Davis', 'carol@example.com', '3456789012'),
+('C137', 'David Lee', 'david@example.com', '4567890123'),
+('C142', 'Eva Green', 'eva@example.com', '5678901234');
+
+
+
+SELECT
+    f.order_id,
+    f.order_date,
+    f.customer_id,
+    d.customer_name,
+    d.customer_email,
+    f.restaurant_id,
+    f.total_price,
+    f.order_status
+FROM fact_order f
+JOIN dim_customer d
+    ON f.customer_id = d.customer_id
+LIMIT 10;
+
+
+SELECT 
+    f.order_id,
+    f.order_date,
+    f.customer_id,
+    d.customer_name,
+    d.customer_email,
+    f.restaurant_id,
+    f.total_price,
+    f.order_status
+FROM 
+    fact_order f
+JOIN 
+    dim_customer d
+ON 
+    f.customer_id = d.customer_id
+LIMIT 10;
+
+SELECT 
+    d.customer_name, 
+    SUM(f.total_price) AS total_spent
+FROM fact_order f
+JOIN dim_customer d ON f.customer_id = d.customer_id
+GROUP BY d.customer_name
+ORDER BY total_spent DESC
+LIMIT 5;
+
+
+
+
+SELECT 
+    order_status, 
+    COUNT(*) AS order_count
+FROM fact_order
+GROUP BY order_status;
+
+
+
+
+SELECT 
+    restaurant_id, 
+    COUNT(*) AS total_orders
+FROM fact_order
+GROUP BY restaurant_id
+ORDER BY total_orders DESC;
+
+
+
+
+SELECT 
+    year, 
+    month, 
+    SUM(total_price) AS monthly_revenue
+FROM fact_order
+GROUP BY year, month
+ORDER BY year, month;
+
+
+SELECT order_id, COUNT(*) AS cnt
+FROM fact_order
+GROUP BY order_id
+HAVING COUNT(*) > 1;
+
+
+
+SELECT
+    SUM(CASE WHEN order_id IS NULL THEN 1 ELSE 0 END) AS null_order_id,
+    SUM(CASE WHEN customer_id IS NULL THEN 1 ELSE 0 END) AS null_customer_id,
+    SUM(CASE WHEN order_date IS NULL THEN 1 ELSE 0 END) AS null_order_date,
+    SUM(CASE WHEN quantity IS NULL THEN 1 ELSE 0 END) AS null_quantity,
+    SUM(CASE WHEN price_per_item IS NULL THEN 1 ELSE 0 END) AS null_price
+FROM fact_order;
+
+
+SELECT order_status, COUNT(*) AS count
+FROM fact_order
+GROUP BY order_status
+ORDER BY count DESC;
+
+
+
+
+
+COPY fact_order
+FROM 's3://quickbite-data-suraj/Trusted/transactions/year=2025/month=5/fact_order.csv'
+IAM_ROLE 'arn:aws:iam::773448520804:role/service-role/AmazonRedshift-CommandsAccessRole-20250602T211026'
+FORMAT AS CSV
+IGNOREHEADER 1
+DELIMITER ',';
+
+
+
+COPY dim_customer
+FROM 's3://quickbite-data-suraj/Trusted/customers/year=2025/month=5/dim_customer.csv'
+IAM_ROLE 'arn:aws:iam::773448520804:role/service-role/AmazonRedshift-CommandsAccessRole-20250602T211026'
+FORMAT AS CSV
+IGNOREHEADER 1
+DELIMITER ',';
